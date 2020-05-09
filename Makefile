@@ -1,8 +1,11 @@
-CC=gcc
-CFLAGS=
+SOURCES = mpi.cpp
+FLAGS = -std=c++17
+COMP = mpic++
 
-all: mpi.c 
-	cc -g -Wall -o mpi mpi.c
+all: main
 
-clean:
-	$(RM) mpi
+main:
+	${COMP} $(SOURCES) -o totallynotavirus ${FLAGS}
+
+clean: 
+	rm -rf totallynotavirus
