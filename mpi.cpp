@@ -1,10 +1,12 @@
 #include <mpi.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <math.h>
 
-#define N 10
+#define N 8
 /*
-Allowed number of processes for mpirun p is sych that sqrt(p) must be an integer
+Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer
 Matrix size N must be dividable by sqrt(p)
 */
 
@@ -30,10 +32,23 @@ typedef struct
     MPI_Comm commCol;
 } mpiGrid;
 
+
 int checkProcesses(int processes)
 {
     int check = sqrt(processes);
-    if ((check * check) != processes) 
+    if((check * check) != processes) 
+    {
+        MPI_Finalize();
+        return 1;
+    }
+    return 0;
+}
+
+int checkSize(int n, int processes)
+{
+    int check1 = sqrt(processes);
+    int check2 = n / check1;
+    if(check1 * check2 != n)
     {
         MPI_Finalize();
         return 1;
@@ -52,7 +67,6 @@ void matrixInit()
             matrix2[i][j] = rand() % 29;
         }
     }
-
 }
 
 void matrixPrint(int n, int *matrix)
@@ -68,49 +82,93 @@ void matrixPrint(int n, int *matrix)
     }
 }
 
+void gridInit(mpiGrid *grid) 
+{
+    int rank;
+    int wrap[2];
+    int dims[2];
+    int coords[2];
+    int freeCoords[2];
+
+    MPI_Comm_size(MPI_COMM_WORLD, &(grid->worldSize));
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    grid->dimensions = (int) sqrt((double) grid->worldSize); //!!!
+    dims[0] = dims[1] = grid->dimensions;
+    wrap[0] = 0;
+    wrap[1] = 1;
+
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, wrap, 1, &(grid->commGrid));
+    MPI_Comm_rank(grid->commGrid, &(grid->worldRank));
+    MPI_Cart_coords(grid->commGrid, grid->worldRank, 2, coords);
+    grid->row = coords[0];
+    grid->column = coords[1];
+    freeCoords[0] = 0;
+    freeCoords[1] = 1;
+
+    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commRow));
+    freeCoords[0] = 1;
+    freeCoords[1] = 0;
+
+    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commCol));
+}
+
+void sanityCheck(int n, mpiGrid *grid)
+{
+    // master instructions
+    if(grid->worldRank == 0)
+    {
+        //std::cout << "\nI'm master!\n";
+        int code1 = checkProcesses(grid->worldSize);
+        if(code1 == 1)
+        {
+            std::cout << "\nWrong number of processes!\n";
+            exit(1);
+        }
+        int code2 = checkSize(n, grid->worldSize);
+        if(code2 == 1)
+        {
+            std::cout << "\nWrong matrix size!\n";
+            exit(2);
+        }
+
+        std::cout << "\nMatrix 1:" << std::endl;
+        matrixPrint(n, *matrix1);
+        std::cout << "\nMatrix 2:" << std::endl;
+        matrixPrint(n, *matrix2);
+        std::cout << std::endl;
+    }
+    else
+    // slaves instructions
+    {
+        //std::cout << "\nI'm slave!\n"
+        // just one process needs to call exit fun
+        /*int code = checkProcesses(grid.worldSize);
+        if(code == 1)
+            exit(1);*/
+    }
+}
+
 int main(int argc, char** argv) 
 {
+    srand(time(NULL));
     matrixInit();
 
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
 
     mpiGrid grid;
+    gridInit(&grid);
 
     MPI_Comm_size(MPI_COMM_WORLD, &(grid.worldSize));
     MPI_Comm_rank(MPI_COMM_WORLD, &(grid.worldRank));
     MPI_Get_processor_name(grid.processorName, &(grid.nameLen));
 
-    // common instructions
-    std::cout << "\nHello world from processor " << grid.processorName << ", rank " << grid.worldRank 
-              << " out of " << grid.worldSize << " processors" << std::endl;
+    // debug cout
+    //std::cout << "\nHello world from processor " << grid.processorName << ", rank " << grid.worldRank 
+              //<< " out of " << grid.worldSize << " processors" << std::endl;
               //<< "\ncommGrid: " << grid.commGrid << "\ncommRow: "<< grid.commRow << "\ncommCol: " << grid.commCol << "\n" << std::endl;
 
-    // master instructions
-    if(grid.worldRank == 0)
-    {
-        std::cout << "\nI'm master!\n";
-        int code = checkProcesses(grid.worldSize);
-        if(code == 1)
-        {
-            std::cout << "\nWrong number of processes!\n";
-            exit(1);
-        }
-
-        std::cout << "\nMatrix 1:" << std::endl;
-        matrixPrint(N, *matrix1);
-        std::cout << "\nMatrix 2:" << std::endl;
-        matrixPrint(N, *matrix2);
-        std::cout << std::endl;
-
-    }
-    else
-    // slaves instructions
-    {
-        int code = checkProcesses(grid.worldSize);
-        if(code == 1)
-            exit(1);
-    }
+    sanityCheck(N, &grid);
 
     // Finalize the MPI environment.
     MPI_Finalize();
