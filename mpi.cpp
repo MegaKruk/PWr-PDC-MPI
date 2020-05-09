@@ -1,27 +1,43 @@
 #include <mpi.h>
 #include <stdio.h>
 
+#define SIZE 10
+
+int matrix1[SIZE][SIZE];
+int matrix2[SIZE][SIZE];
+
+typedef struct 
+{
+    // number of processes
+    int worldSize;
+    // rank of the process
+    int worldRank;
+    // Get the name of the processor
+    char processorName[MPI_MAX_PROCESSOR_NAME];
+    int nameLen;
+    int column;
+    int row;
+    int dimensions;
+    MPI_Comm commGrid;
+    MPI_Comm commRow;
+    MPI_Comm commCol;
+} mpiGrid;
+
 int main(int argc, char** argv) 
 {
     // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
 
-    // Get the number of processes
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    mpiGrid grid;
 
-    // Get the rank of the process
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &(grid.worldSize));
+    MPI_Comm_rank(MPI_COMM_WORLD, &(grid.worldRank));
+    MPI_Get_processor_name(grid.processorName, &(grid.nameLen));
 
-    // Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
-
-    // Print off a hello world message
-    printf("Hello world from processor %s, rank %d out of %d processors\n",
-           processor_name, world_rank, world_size);
+    // debug cout
+    std::cout << "Hello world from processor " << grid.processorName << ", rank " << grid.worldRank 
+              << " out of " << grid.worldSize << " processors\n";
+              //<< "\ncommGrid: " << grid.commGrid << "\ncommRow: "<< grid.commRow << "\ncommCol: " << grid.commCol << "\n" << std::endl;
 
     // Finalize the MPI environment.
     MPI_Finalize();
