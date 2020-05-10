@@ -1,11 +1,15 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
 #include <time.h>
 #include <math.h>
 #include <chrono>
 
 #define N 20
+
+using namespace std;
 /*
 Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer
 Matrix size N must be dividable by sqrt(p)
@@ -14,8 +18,8 @@ Matrix size N must be dividable by sqrt(p)
 int matrix1[N][N];
 int matrix2[N][N];
 int matrix3[N][N];
-std::chrono::high_resolution_clock::time_point start;
-std::chrono::high_resolution_clock::time_point finish;
+chrono::high_resolution_clock::time_point start;
+chrono::high_resolution_clock::time_point finish;
 
 typedef struct 
 {
@@ -29,7 +33,7 @@ typedef struct
     
     int column;
     int row;
-    int dimensions;
+    int dims;
     
     MPI_Comm commGrid;
     MPI_Comm commRow;
@@ -38,13 +42,13 @@ typedef struct
 
 void timeStart()
 {
-    start = std::chrono::high_resolution_clock::now();
+    start = chrono::high_resolution_clock::now();
 }
 
 long double timeStop()
 {
-    std::chrono::high_resolution_clock::time_point finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<long double, std::nano> diff = finish - start;
+    chrono::high_resolution_clock::time_point finish = chrono::high_resolution_clock::now();
+    chrono::duration<long double, nano> diff = finish - start;
     return diff.count();
 }
 
@@ -105,10 +109,10 @@ void matrixPrint(int n, int *matrix)
     {
         for (int j = 0; j < n; j++) 
         {
-            std::cout << matrix[i * n + j];
-            std::cout << "\t";
+            cout << matrix[i * n + j];
+            cout << "\t";
         }
-        std::cout << std::endl;
+        cout << endl;
     }
 }
 
@@ -124,8 +128,8 @@ void gridInit(mpiGrid *grid)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Get_processor_name(grid->processorName, &(grid->nameLen));
     
-    grid->dimensions = (int) sqrt((double) grid->worldSize); //!!!
-    dims[0] = dims[1] = grid->dimensions;
+    grid->dims = (int) sqrt((double) grid->worldSize); //!!!
+    dims[0] = dims[1] = grid->dims;
     wrap[0] = 0;
     wrap[1] = 1;
 
@@ -146,9 +150,9 @@ void gridInit(mpiGrid *grid)
     MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commCol));
 
     // debug cout
-    //std::cout << "\nHello world from processor " << grid.processorName << ", rank " << grid.worldRank 
-              //<< " out of " << grid.worldSize << " processors" << std::endl;
-              //<< "\ncommGrid: " << grid.commGrid << "\ncommRow: "<< grid.commRow << "\ncommCol: " << grid.commCol << "\n" << std::endl;
+    //cout << "\nHello world from processor " << grid.processorName << ", rank " << grid.worldRank 
+              //<< " out of " << grid.worldSize << " processors" << endl;
+              //<< "\ncommGrid: " << grid.commGrid << "\ncommRow: "<< grid.commRow << "\ncommCol: " << grid.commCol << "\n" << endl;
 }
 
 void sanityCheck(int n, mpiGrid *grid)
@@ -156,23 +160,23 @@ void sanityCheck(int n, mpiGrid *grid)
     // master instructions
     if(grid->worldRank == 0)
     {
-        //std::cout << "\nI'm master!\n";
+        //cout << "\nI'm master!\n";
         int code1 = checkProcesses(grid->worldSize);
         if(code1 == 1)
         {
-            std::cout << "\nWrong number of processes!\n";
+            cout << "\nWrong number of processes!\n";
             exit(1);
         }
         int code2 = checkSize(n, grid->worldSize);
         if(code2 == 1)
         {
-            std::cout << "\nWrong matrix size!\n";
+            cout << "\nWrong matrix size!\n";
             exit(2);
         }
 
-        std::cout << "\nMatrix 1:" << std::endl;
+        cout << "\nMatrix 1:" << endl;
         matrixPrint(n, *matrix1);
-        std::cout << "\nMatrix 2:" << std::endl;
+        cout << "\nMatrix 2:" << endl;
         matrixPrint(n, *matrix2);
 
         //local test!!!
@@ -180,15 +184,15 @@ void sanityCheck(int n, mpiGrid *grid)
         timeStart();
         matrixMultiply(n);
         long double duration = timeStop();
-        std::cout << "\nMatrix 3: " << std::endl;
+        cout << "\nMatrix 3: " << endl;
         matrixPrint(n, *matrix3);
-        std::cout << "\nDuration: " << duration << " ns" << std::endl;
+        cout << "\nDuration: " << duration << " ns" << endl;
         */
     }
     else
     // slaves instructions
     {
-        //std::cout << "\nI'm slave!\n"
+        //cout << "\nI'm slave!\n"
         // just one process needs to call exit fun
         /*int code = checkProcesses(grid.worldSize);
         if(code == 1)
@@ -229,19 +233,19 @@ void foxAlgorithm(int n, mpiGrid *grid)
     int stage, root, subDimension, src, dst;
     MPI_Status status;
 
-    subDimension = n / grid->dimensions;
+    subDimension = n / grid->dims;
 
 
     buff = new int[subDimension * subDimension];
     for (int i = 0; i < subDimension * subDimension; i++)
         buff[i] = 0;
 
-    src = (grid->row + 1) % grid->dimensions;
-    dst = (grid->row + grid->dimensions - 1) % grid->dimensions;
+    src = (grid->row + 1) % grid->dims;
+    dst = (grid->row + grid->dims - 1) % grid->dims;
 
-    for (stage = 0; stage < grid->dimensions; stage++) 
+    for (stage = 0; stage < grid->dims; stage++) 
     {
-        root = (grid->row + stage) % grid->dimensions;
+        root = (grid->row + stage) % grid->dims;
         if (root == grid->column) 
         {
             matrixToBuffer(buff, matrix1, subDimension);
@@ -264,7 +268,7 @@ void foxAlgorithm(int n, mpiGrid *grid)
 
 void measureStuff(int n, mpiGrid *grid)
 {
-    int checkboardFieldSize = n / grid->dimensions;
+    int checkboardFieldSize = n / grid->dims;
     MPI_Barrier(grid->commGrid);
     if (grid->worldRank == 0)
     {
@@ -275,7 +279,16 @@ void measureStuff(int n, mpiGrid *grid)
     if (grid->worldRank == 0)
     {
         long double duration = timeStop();
-        std::cout << "\nDuration: " << duration << " ns" << std::endl;
+        cout << "\nDuration: " << duration << " ns" << endl;
+/*
+        ofstream times;
+        times.open ("times.log");
+        times << "Duration: " << duration << " ns\n";
+        times.close();*/
+        
+        ofstream out("times.csv", fstream::app);
+        out << "Duration:\t" << duration << "\tns\n";
+        out.close();
     }
 
     int *resultBuff = new int[n * n];
@@ -288,9 +301,10 @@ void measureStuff(int n, mpiGrid *grid)
     {
         int *result = new int[n * n];
         int k = 0;
-        for (int l = 0; l < grid->dimensions; l++)
+        //omnissiah please forgive me for this
+        for (int l = 0; l < grid->dims; l++)
         {
-            for (int m = 0; m < grid->dimensions; m++)
+            for (int m = 0; m < grid->dims; m++)
             {
                 for (int i = l * checkboardFieldSize; i < l * checkboardFieldSize + checkboardFieldSize; i++)
                 {
@@ -303,8 +317,18 @@ void measureStuff(int n, mpiGrid *grid)
             }
         }
         // print result
-        std::cout << "\nResult: " << std::endl;
+        cout << "\nResult: " << endl;
         matrixPrint(n, result);
+
+        // save result
+        ofstream out("out.csv");
+        for(int i = 0; i < n; i++) 
+        {
+            for (int j = 0; j < n; j++)
+                out << result[i * n + j] <<',';
+            out << '\n';
+        }
+        out.close();
     }
 }
 
