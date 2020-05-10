@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <chrono>
 
-#define N 4
+#define N 20
 /*
 Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer
 Matrix size N must be dividable by sqrt(p)
@@ -13,6 +14,8 @@ Matrix size N must be dividable by sqrt(p)
 int matrix1[N][N];
 int matrix2[N][N];
 int matrix3[N][N];
+std::chrono::high_resolution_clock::time_point start;
+std::chrono::high_resolution_clock::time_point finish;
 
 typedef struct 
 {
@@ -33,6 +36,17 @@ typedef struct
     MPI_Comm commCol;
 } mpiGrid;
 
+void timeStart()
+{
+    start = std::chrono::high_resolution_clock::now();
+}
+
+long double timeStop()
+{
+    std::chrono::high_resolution_clock::time_point finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<long double, std::nano> diff = finish - start;
+    return diff.count();
+}
 
 int checkProcesses(int processes)
 {
@@ -153,9 +167,12 @@ void sanityCheck(int n, mpiGrid *grid)
         matrixPrint(n, *matrix2);
 
         //local test!!!
+        timeStart();
         matrixMultiply(n);
-        std::cout << "\nMatrix 3:" << std::endl;
+        long double duration = timeStop();
+        std::cout << "\nMatrix 3: " << std::endl;
         matrixPrint(n, *matrix3);
+        std::cout << "\nDuration: " << duration << " ns" << std::endl;
     }
     else
     // slaves instructions
