@@ -4,7 +4,7 @@
 #include <time.h>
 #include <math.h>
 
-#define N 8
+#define N 4
 /*
 Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer
 Matrix size N must be dividable by sqrt(p)
@@ -12,6 +12,7 @@ Matrix size N must be dividable by sqrt(p)
 
 int matrix1[N][N];
 int matrix2[N][N];
+int matrix3[N][N];
 
 typedef struct 
 {
@@ -63,8 +64,23 @@ void matrixInit()
     {
         for (int j = 0; j < N; j++) 
         {
-            matrix1[i][j] = rand() % 29;
-            matrix2[i][j] = rand() % 29;
+            matrix1[i][j] = rand() % 10;
+            matrix2[i][j] = rand() % 10;
+        }
+    }
+}
+
+void matrixMultiply(int n) 
+{
+    int tmp = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++) 
+        {
+            tmp = 0;
+            for (int k = 0; k < n; k++)
+                tmp += (matrix1[i][k] * matrix2[k][j]);
+            matrix3[i][j] += tmp;
         }
     }
 }
@@ -135,7 +151,11 @@ void sanityCheck(int n, mpiGrid *grid)
         matrixPrint(n, *matrix1);
         std::cout << "\nMatrix 2:" << std::endl;
         matrixPrint(n, *matrix2);
-        std::cout << std::endl;
+
+        //local test!!!
+        matrixMultiply(n);
+        std::cout << "\nMatrix 3:" << std::endl;
+        matrixPrint(n, *matrix3);
     }
     else
     // slaves instructions
