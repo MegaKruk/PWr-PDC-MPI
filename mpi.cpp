@@ -7,37 +7,29 @@
 #include <math.h>
 #include <chrono>
 
-#define N 20
+#define N 4
 
 using namespace std;
-/*
-Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer
-Matrix size N must be dividable by sqrt(p)
-*/
 
 int matrix1[N][N];
 int matrix2[N][N];
-int matrix3[N][N];
 chrono::high_resolution_clock::time_point start;
 chrono::high_resolution_clock::time_point finish;
 
 typedef struct 
 {
-    // number of processes
-    int worldSize;
-    // rank of the process
     int worldRank;
-    // name of the processor
+    int dim;
+    int row;
+    int column;
+    int rank;
+
     char processorName[MPI_MAX_PROCESSOR_NAME];
     int nameLen;
-    
-    int column;
-    int row;
-    int dims;
-    
+
     MPI_Comm commGrid;
     MPI_Comm commRow;
-    MPI_Comm commCol;
+    MPI_Comm commcolumn;
 } mpiGrid;
 
 void timeStart()
@@ -63,11 +55,11 @@ int checkProcesses(int processes)
     return 0;
 }
 
-int checkSize(int n, int processes)
+int checkSize(int processes)
 {
     int check1 = sqrt(processes);
-    int check2 = n / check1;
-    if(check1 * check2 != n)
+    int check2 = N / check1;
+    if(check1 * check2 != N)
     {
         MPI_Finalize();
         return 1;
@@ -75,7 +67,108 @@ int checkSize(int n, int processes)
     return 0;
 }
 
-// just for now, later will be loading data from ciphertext/plaintext and coding/decoding into matrix
+void gridInit(mpiGrid *grid) 
+{
+    int dims[2];
+    int wrap[2];
+    int coords[2];
+    int freeCoords[2];
+    int worldRank;
+
+    MPI_Comm_size(MPI_COMM_WORLD, &(grid->worldRank));
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+
+    grid->dim = (int) sqrt((double) grid->worldRank);
+    dims[0] = dims[1] = grid->dim;
+
+    wrap[0] = 0;
+    wrap[1] = 1;
+
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, wrap, 1, &(grid->commGrid));
+    MPI_Comm_rank(grid->commGrid, &(grid->rank));
+    MPI_Cart_coords(grid->commGrid, grid->rank, 2, coords);
+    grid->row = coords[0];
+    grid->column = coords[1];
+
+    freeCoords[0] = 0;
+    freeCoords[1] = 1;
+    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commRow));
+
+    freeCoords[0] = 1;
+    freeCoords[1] = 0;
+    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commcolumn));
+}
+
+
+void matrixMultiply(int **a, int **b, int **c, int size) 
+{
+    int temp = 0;
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++) 
+        {
+            temp = 0;
+            for (int k = 0; k < size; k++)
+                temp += (a[i][k] * b[k][j]);
+            c[i][j] += temp;
+        }
+    }
+}
+
+void bufferToMatrix(int *buff, int **a, int size) 
+{
+    int k = 0;
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++) 
+        {
+            a[i][j] = buff[k];
+            k++;
+        }
+    }
+}
+
+void matrixToBuffer(int *buff, int **a, int size) 
+{
+    int k = 0;
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++) 
+        {
+            buff[k] = a[i][j];
+            k++;
+        }
+    }
+}
+
+void matrixPrint(int **matrix, int size) 
+{
+    for (int i = 0; i < size; i++) 
+    {
+        for (int j = 0; j < size; j++) 
+        {
+            int el = matrix[i][j];
+            cout << el;
+            cout << "\t";
+        }
+        cout << endl;
+    }
+}
+
+void bufferPrint(int *matrix, int size) 
+{
+    for (int i = 0; i < size; i++) 
+    {
+        for (int j = 0; j < size; j++) 
+        {
+            int el = matrix[i * size + j];
+            cout << el;
+            cout << "\t";
+        }
+        cout << endl;
+    }
+}
+
 void matrixInit() 
 {
     for (int i = 0; i < N; i++)
@@ -88,86 +181,63 @@ void matrixInit()
     }
 }
 
-void matrixMultiply(int n) 
+void foxAlgorithm(int n, mpiGrid *grid, int **a, int **b, int **c) 
 {
-    int tmp = 0;
-    for (int i = 0; i < n; i++)
+    int **tempMatrix, *buff, stage, root, subDimension, src, dst;
+    MPI_Status status;
+
+    subDimension = n / grid->dim;
+
+    tempMatrix = new int*[subDimension];
+    for(int i = 0; i < subDimension; ++i)
+        tempMatrix[i] = new int[subDimension];
+    for (int i = 0; i < subDimension; i++)
+        for (int j = 0; j < subDimension; j++)
+            tempMatrix[i][j] = 0;
+
+    buff = new int[subDimension*subDimension];
+    for (int i = 0; i < subDimension * subDimension; i++)
+        buff[i] = 0;
+
+    src = (grid->row + 1) % grid->dim;
+    dst = (grid->row + grid->dim - 1) % grid->dim;
+
+    for (stage = 0; stage < grid->dim; stage++) 
     {
-        for (int j = 0; j < n; j++) 
+        root = (grid->row + stage) % grid->dim;
+        if (root == grid->column) 
         {
-            tmp = 0;
-            for (int k = 0; k < n; k++)
-                tmp += (matrix1[i][k] * matrix2[k][j]);
-            matrix3[i][j] += tmp;
+            matrixToBuffer(buff, a, subDimension);
+            MPI_Bcast(buff, subDimension * subDimension, MPI_INT, root, grid->commRow);
+            bufferToMatrix(buff, a, subDimension);
+            matrixMultiply(a, b, c, subDimension);
+        } 
+        else 
+        {
+            matrixToBuffer(buff, tempMatrix, subDimension);
+            MPI_Bcast(buff, subDimension * subDimension, MPI_INT, root, grid->commRow);
+            bufferToMatrix(buff, tempMatrix, subDimension);
+            matrixMultiply(tempMatrix, b, c, subDimension);
         }
+        matrixToBuffer(buff, b, subDimension);
+        MPI_Sendrecv_replace(buff, subDimension * subDimension, MPI_INT, dst, 0, src, 0, grid->commcolumn, &status);
+        bufferToMatrix(buff, b, subDimension);
     }
 }
 
-void matrixPrint(int n, int *matrix)
-{
-    for (int i = 0; i < n; i++) 
-    {
-        for (int j = 0; j < n; j++) 
-        {
-            cout << matrix[i * n + j];
-            cout << "\t";
-        }
-        cout << endl;
-    }
-}
-
-void gridInit(mpiGrid *grid) 
-{
-    int rank;
-    int wrap[2];
-    int dims[2];
-    int coords[2];
-    int freeCoords[2];
-
-    MPI_Comm_size(MPI_COMM_WORLD, &(grid->worldSize));
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Get_processor_name(grid->processorName, &(grid->nameLen));
-    
-    grid->dims = (int) sqrt((double) grid->worldSize); //!!!
-    dims[0] = dims[1] = grid->dims;
-    wrap[0] = 0;
-    wrap[1] = 1;
-
-    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, wrap, 1, &(grid->commGrid));
-    MPI_Comm_rank(grid->commGrid, &(grid->worldRank));
-    MPI_Cart_coords(grid->commGrid, grid->worldRank, 2, coords);
-    
-    grid->row = coords[0];
-    grid->column = coords[1];
-    freeCoords[0] = 0;
-    freeCoords[1] = 1;
-
-    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commRow));
-    
-    freeCoords[0] = 1;
-    freeCoords[1] = 0;
-
-    MPI_Cart_sub(grid->commGrid, freeCoords, &(grid->commCol));
-
-    // debug cout
-    //cout << "\nHello world from processor " << grid.processorName << ", rank " << grid.worldRank 
-              //<< " out of " << grid.worldSize << " processors" << endl;
-              //<< "\ncommGrid: " << grid.commGrid << "\ncommRow: "<< grid.commRow << "\ncommCol: " << grid.commCol << "\n" << endl;
-}
-
-void sanityCheck(int n, mpiGrid *grid)
+void sanityCheck(mpiGrid *grid)
 {
     // master instructions
     if(grid->worldRank == 0)
     {
         //cout << "\nI'm master!\n";
-        int code1 = checkProcesses(grid->worldSize);
+        int code1 = checkProcesses(grid->worldRank);
         if(code1 == 1)
         {
             cout << "\nWrong number of processes!\n";
             exit(1);
         }
-        int code2 = checkSize(n, grid->worldSize);
+        int code2 = checkSize(grid->worldRank);
         if(code2 == 1)
         {
             cout << "\nWrong matrix size!\n";
@@ -175,183 +245,162 @@ void sanityCheck(int n, mpiGrid *grid)
         }
 
         cout << "\nMatrix 1:" << endl;
-        matrixPrint(n, *matrix1);
+        bufferPrint(*matrix1, N);
         cout << "\nMatrix 2:" << endl;
-        matrixPrint(n, *matrix2);
-
-        //local test!!!
-        /*
-        timeStart();
-        matrixMultiply(n);
-        long double duration = timeStop();
-        cout << "\nMatrix 3: " << endl;
-        matrixPrint(n, *matrix3);
-        cout << "\nDuration: " << duration << " ns" << endl;
-        */
+        bufferPrint(*matrix2, N);
     }
     else
     // slaves instructions
     {
         //cout << "\nI'm slave!\n"
-        // just one process needs to call exit fun
-        /*int code = checkProcesses(grid.worldSize);
-        if(code == 1)
-            exit(1);*/
     }
 }
 
-void bufferToMatrix(int *buff, int a[][N], int n) 
+int** testStuff()
 {
-    int k = 0;
-    for (int i = 0; i < n; i++)
+    int **testResult, **testMatrix1, **testMatrix2;
+    testMatrix1 = new int*[N];
+    testMatrix2 = new int*[N];
+    testResult = new int*[N];
+    for(int i = 0; i < N; ++i) 
     {
-        for (int j = 0; j < n; j++) 
+        testMatrix1[i] = new int[N];
+        testMatrix2[i] = new int[N];
+        testResult[i] = new int[N];
+    }
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++) 
         {
-            a[i][j] = buff[k];
-            k++;
+            testMatrix1[i][j] = matrix1[i][j];
+            testMatrix2[i][j] = matrix2[i][j];
+            testResult[i][j] = 0;
+        }
+    matrixMultiply(testMatrix1, testMatrix2, testResult, N);
+    return testResult;
+}
+
+void measureStuff(mpiGrid *grid)
+{
+    int checkboardPiece;
+    int **matrixA, **matrixB, **matrixC;
+    checkboardPiece = N / grid->dim;
+    int checkboardRow = grid->row * checkboardPiece;
+    int checkboardColumn = grid->column * checkboardPiece;
+
+    matrixA = new int*[N];
+    matrixB = new int*[N];
+    matrixC = new int*[N];
+
+    for(int i = 0; i < N; ++i)
+    {
+        matrixA[i] = new int[N];
+        matrixB[i] = new int[N];
+        matrixC[i] = new int[N];
+    }
+
+    for (int i = checkboardRow; i < checkboardRow + checkboardPiece; i++)
+    {
+        for (int j = checkboardColumn; j < checkboardColumn + checkboardPiece; j++) 
+        {
+            matrixA[i - (checkboardRow)][j - (checkboardColumn)] = matrix1[i][j];
+            matrixB[i - (checkboardRow)][j - (checkboardColumn)] = matrix2[i][j];
+            matrixC[i - (checkboardRow)][j - (checkboardColumn)] = 0;
         }
     }
-}
 
-void matrixToBuffer(int *buff, int a[][N], int n) 
-{
-    int k = 0;
-    for (int i = 0; i < n; i++)
+    if (grid->rank == 0)
     {
-        for (int j = 0; j < n; j++) 
-        {
-            buff[k] = a[i][j];
-            k++;
-        }
+        cout << "\nMatrix 1:" << endl;
+        bufferPrint(*matrix1, N);
+        cout << "\nMatrix 2:" << endl;
+        bufferPrint(*matrix2, N);
     }
-}
 
-void foxAlgorithm(int n, mpiGrid *grid) 
-{
-    int tmpMatrix[N][N];
-    int *buff; 
-    int stage, root, subDimension, src, dst;
-    MPI_Status status;
-
-    subDimension = n / grid->dims;
-
-
-    buff = new int[subDimension * subDimension];
-    for (int i = 0; i < subDimension * subDimension; i++)
-        buff[i] = 0;
-
-    src = (grid->row + 1) % grid->dims;
-    dst = (grid->row + grid->dims - 1) % grid->dims;
-
-    for (stage = 0; stage < grid->dims; stage++) 
-    {
-        root = (grid->row + stage) % grid->dims;
-        if (root == grid->column) 
-        {
-            matrixToBuffer(buff, matrix1, subDimension);
-            MPI_Bcast(buff, subDimension * subDimension, MPI_INT, root, grid->commRow);
-            bufferToMatrix(buff, matrix1, subDimension);
-            matrixMultiply(subDimension);
-        } 
-        else 
-        {
-            matrixToBuffer(buff, tmpMatrix, subDimension);
-            MPI_Bcast(buff, subDimension * subDimension, MPI_INT, root, grid->commRow);
-            bufferToMatrix(buff, tmpMatrix, subDimension);
-            matrixMultiply(subDimension);
-        }
-        matrixToBuffer(buff, matrix2, subDimension);
-        MPI_Sendrecv_replace(buff, subDimension * subDimension, MPI_INT, dst, 0, src, 0, grid->commCol, &status);
-        bufferToMatrix(buff, matrix2, subDimension);
-    }
-}
-
-void measureStuff(int n, mpiGrid *grid)
-{
-    int checkboardFieldSize = n / grid->dims;
     MPI_Barrier(grid->commGrid);
-    if (grid->worldRank == 0)
+    if (grid->rank == 0)
     {
         timeStart();
     }
-    foxAlgorithm(n, grid);
+    foxAlgorithm(N, grid, matrixA, matrixB, matrixC);
     MPI_Barrier(grid->commGrid);
-    if (grid->worldRank == 0)
+    if (grid->rank == 0)
     {
         long double duration = timeStop();
         cout << "\nDuration: " << duration << " ns" << endl;
-/*
-        ofstream times;
-        times.open ("times.log");
-        times << "Duration: " << duration << " ns\n";
-        times.close();*/
-        
         ofstream out("times.csv", fstream::app);
         out << "Duration:\t" << duration << "\tns\n";
         out.close();
     }
 
-    int *resultBuff = new int[n * n];
-    int *localBuff = new int[checkboardFieldSize * checkboardFieldSize];
-    matrixToBuffer(localBuff, matrix3, checkboardFieldSize);
+    int *resultsBuffer = new int[N * N];
+    int *tmpBuffer = new int[checkboardPiece * checkboardPiece];
+    matrixToBuffer(tmpBuffer, matrixC, checkboardPiece);
 
-    MPI_Gather(localBuff, checkboardFieldSize * checkboardFieldSize, MPI_INT, resultBuff, checkboardFieldSize * checkboardFieldSize, MPI_INT, 0, grid->commGrid);
+    MPI_Gather(tmpBuffer, checkboardPiece * checkboardPiece, MPI_INT, resultsBuffer, checkboardPiece * checkboardPiece, MPI_INT, 0, grid->commGrid);
     MPI_Barrier(grid->commGrid);
-    if (grid->worldRank == 0) 
+    if (grid->rank == 0) 
     {
-        int *result = new int[n * n];
+        int *results = new int[N * N];
         int k = 0;
-        //omnissiah please forgive me for this
-        for (int l = 0; l < grid->dims; l++)
+        for (int x = 0; x < grid->dim; x++)
         {
-            for (int m = 0; m < grid->dims; m++)
-            {
-                for (int i = l * checkboardFieldSize; i < l * checkboardFieldSize + checkboardFieldSize; i++)
-                {
-                    for (int j = m * checkboardFieldSize; j < m * checkboardFieldSize + checkboardFieldSize; j++) 
+            for (int z = 0; z < grid->dim; z++)
+                for (int i = x * checkboardPiece; i < x * checkboardPiece + checkboardPiece; i++)
+                    for (int j = z * checkboardPiece; j < z * checkboardPiece + checkboardPiece; j++) 
                     {
-                        result[i * n + j] = resultBuff[k];
+                        results[i * N + j] = resultsBuffer[k];
                         k++;
                     }
+        }
+
+        // test result
+        cout << "\nFox's result:\n";
+        bufferPrint(results, N);
+        int** res = testStuff();
+        cout << "\nLocal test:\n";
+        matrixPrint(res, N);
+        for(int i = 0;i < N; i++)
+            for(int j = 0; j < N; j++)
+            {
+                if(res[i][j] != results[i * N + j])
+                {
+                    cout << "\nFox's solution wrong!" << endl;
+                    exit(1);
                 }
             }
-        }
-        // print result
-        cout << "\nResult: " << endl;
-        matrixPrint(n, result);
+        cout << "\nFox's solution ok" << endl;
 
         // save result
         ofstream out("out.csv");
-        for(int i = 0; i < n; i++) 
+        for(int i = 0; i < N; i++) 
         {
-            for (int j = 0; j < n; j++)
-                out << result[i * n + j] <<',';
+            for (int j = 0; j < N; j++)
+                out << results[i * N + j] <<',';
             out << '\n';
         }
         out.close();
     }
 }
 
-int main(int argc, char** argv) 
+int main(int argc, char *argv[]) 
 {
     srand(time(NULL));
-    
-    matrixInit();
 
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
 
-    // Initialize grid
+    // Initialize grid and then matrix
     mpiGrid grid;
     gridInit(&grid);
+    matrixInit();
 
     // check if everything is correct
-    sanityCheck(N, &grid);
+    sanityCheck(&grid);
 
     // main function
-    measureStuff(N, &grid);
+    measureStuff(&grid);    
 
-    // Finalize the MPI environment.
+    // Finalize the MPI environment
     MPI_Finalize();
-    return 0;
-}
+    exit(0);
+}       
