@@ -6,8 +6,10 @@
 #include <time.h>
 #include <math.h>
 #include <chrono>
+#include <string>
+#include <sstream>
 
-#define N 1000
+#define N 100
 
 using namespace std;
 /*  
@@ -175,35 +177,40 @@ void bufferPrint(int *matrix, int size)
 
 void matrixInit() 
 {
-    // later load from file
+    ifstream in;
+    in.open("matrix1_100.csv");
     for (int i = 0; i < N; i++)
     {
+        string line;
+        getline(in, line);
+        stringstream iss(line);
         for (int j = 0; j < N; j++) 
         {
-            matrix1[i][j] = rand() % 10;
-            matrix2[i][j] = rand() % 10;
+            string val;
+            getline(iss, val, ',');
+            stringstream convertor(val);
+            convertor >> matrix1[i][j];
         }
     }
+    in.close();
 
-    //hack fix to generate matrices easily
-    /*
-    ofstream out("matrix1.csv");
-    for(int i = 0; i < N; i++) 
+    ifstream in2;
+    in2.open("matrix1_100.csv");
+    for (int i = 0; i < N; i++)
     {
-        for (int j = 0; j < N; j++)
-            out << matrix1[i][j] <<',';
-        out << '\n';
+        string line2;
+        getline(in2, line2);
+        stringstream iss2(line2);
+        for (int j = 0; j < N; j++) 
+        {
+            string val2;
+            getline(iss2, val2, ',');
+            stringstream convertor2(val2);
+            convertor2 >> matrix2[i][j];
+        }
     }
-    out.close();
-    ofstream out2("matrix2.csv");
-    for(int i = 0; i < N; i++) 
-    {
-        for (int j = 0; j < N; j++)
-            out2 << matrix2[i][j] <<',';
-        out2 << '\n';
-    }
-    out2.close();
-    */
+    in2.close();
+
 }
 
 void foxAlgorithm(int n, mpiGrid *grid, int **a, int **b, int **c) 
@@ -409,7 +416,7 @@ void measureStuff(mpiGrid *grid)
 
 int main(int argc, char *argv[]) 
 {
-    srand(time(NULL));
+    //srand(time(NULL));
 
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
