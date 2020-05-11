@@ -1,63 +1,292 @@
-Duration:	2.16377e+07	ns
-Duration:	3.62391e+07	ns
-Duration:	74788	ns
-Duration:	4.55573e+06	ns
-Duration:	87234	ns
-Duration:	64728	ns
-Duration:	54613	ns
-Duration:	60089	ns
-Duration:	1.01082e+07	ns
-Duration:	54396	ns
-Duration:	1.01755e+07	ns
-Duration:	58348	ns
-Duration:	755386	ns
-Duration:	189159	ns
-Duration:	269204	ns
-Duration:	310700	ns
-Duration:	1.93004e+06	ns
-Duration:	22439	ns
-Duration:	23443	ns
-Duration:	20610	ns
-Duration:	38736	ns
-Duration:	45322	ns
-Duration:	326432	ns
-Duration:	353300	ns
-Duration:	18958	ns
-Duration:	33248	ns
-Duration:	21043	ns
-Duration:	37156	ns
-Duration:	1.85776e+06	ns
-Duration:	107211	ns
-Duration:	53140	ns
-Duration:	1.91792e+06	ns
-Duration:	26996	ns
-Duration:	124548	ns
-Duration:	1.5233e+06	ns
-Duration:	21324	ns
-Duration:	85855	ns
-Duration:	20902	ns
-Duration:	25120	ns
-Duration:	19797	ns
-Duration:	199487	ns
-Duration:	19573	ns
-Duration:	1.89388e+06	ns
-Duration:	16836	ns
-Duration:	12790	ns
-Duration:	69238	ns
-Duration:	1.60463e+06	ns
-Duration:	64206	ns
-Duration:	26397	ns
-Duration:	1.15133e+06	ns
-Duration:	2.00133e+07	ns
-Duration:	5.19425e+07	ns
-Duration:	3.4796e+08	ns
-Duration:	3.04611e+09	ns
-Duration:	3.06459e+09	ns
-Duration:	3.01782e+06	ns
-Duration:	42326	ns
-Duration:	33691	ns
-Duration:	37019	ns
-Duration:	3.80028e+06	ns
-Duration:	30767	ns
-Duration:	19221	ns
-Duration:	1.99881e+07	ns
+N,50,nodes,1
+Computation duration:,588211,ns,
+Total duration:,11291200,ns,
+Computation duration:,595100,ns,
+Total duration:,10293600,ns,
+Computation duration:,743968,ns,
+Total duration:,11322300,ns,
+Computation duration:,635406,ns,
+Total duration:,11050400,ns,
+Computation duration:,730910,ns,
+Total duration:,10594900,ns,
+Computation duration:,613301,ns,
+Total duration:,10837500,ns,
+Computation duration:,640954,ns,
+Total duration:,11372300,ns,
+Computation duration:,646989,ns,
+Total duration:,11788900,ns,
+Computation duration:,843957,ns,
+Total duration:,12634700,ns,
+Computation duration:,622737,ns,
+Total duration:,11451200,ns,
+N,50,nodes,4
+Computation duration:,45970700,ns,
+Total duration:,57719400,ns,
+Computation duration:,53703200,ns,
+Total duration:,64610800,ns,
+Computation duration:,62812200,ns,
+Total duration:,77101600,ns,
+Computation duration:,18293200,ns,
+Total duration:,32564900,ns,
+Computation duration:,440212,ns,
+Total duration:,10603800,ns,
+Computation duration:,5078610,ns,
+Total duration:,29895800,ns,
+Computation duration:,361230,ns,
+Total duration:,68362500,ns,
+Computation duration:,345252,ns,
+Total duration:,15535500,ns,
+Computation duration:,363085,ns,
+Total duration:,34058700,ns,
+Computation duration:,1319030,ns,
+Total duration:,12334400,ns,
+N,100,nodes,1
+Computation duration:,4197110,ns,
+Total duration:,38784600,ns,
+Computation duration:,4240220,ns,
+Total duration:,41149400,ns,
+Computation duration:,4388590,ns,
+Total duration:,42461600,ns,
+Computation duration:,4171440,ns,
+Total duration:,46408000,ns,
+Computation duration:,4173000,ns,
+Total duration:,43405500,ns,
+Computation duration:,4160380,ns,
+Total duration:,45479800,ns,
+Computation duration:,3931420,ns,
+Total duration:,50439200,ns,
+Computation duration:,4169890,ns,
+Total duration:,46975100,ns,
+Computation duration:,4058970,ns,
+Total duration:,42892000,ns,
+Computation duration:,4046710,ns,
+Total duration:,38206600,ns,
+N,100,nodes,4
+Computation duration:,8502270,ns,
+Total duration:,233456000,ns,
+Computation duration:,12467200,ns,
+Total duration:,291358000,ns,
+Computation duration:,2457940,ns,
+Total duration:,80974500,ns,
+Computation duration:,20019100,ns,
+Total duration:,121892000,ns,
+Computation duration:,32067200,ns,
+Total duration:,190473000,ns,
+Computation duration:,8330660,ns,
+Total duration:,86171300,ns,
+Computation duration:,5435050,ns,
+Total duration:,218836000,ns,
+Computation duration:,6648460,ns,
+Total duration:,140302000,ns,
+Computation duration:,2572870,ns,
+Total duration:,150339000,ns,
+Computation duration:,3561220,ns,
+Total duration:,162836000,ns,
+N,100,nodes,16
+Computation duration:,482752000,ns,
+Total duration:,692403000,ns,
+Computation duration:,451990000,ns,
+Total duration:,1043790000,ns,
+Computation duration:,459458000,ns,
+Total duration:,631327000,ns,
+Computation duration:,516829000,ns,
+Total duration:,778346000,ns,
+Computation duration:,483821000,ns,
+Total duration:,795142000,ns,
+Computation duration:,555973000,ns,
+Total duration:,989497000,ns,
+Computation duration:,457575000,ns,
+Total duration:,803373000,ns,
+Computation duration:,418743000,ns,
+Total duration:,665218000,ns,
+Computation duration:,507958000,ns,
+Total duration:,756249000,ns,
+Computation duration:,415160000,ns,
+Total duration:,899675000,ns,
+N,200,nodes,1
+Computation duration:,35514100,ns,
+Total duration:,197179000,ns,
+Computation duration:,34031500,ns,
+Total duration:,213533000,ns,
+Computation duration:,36148400,ns,
+Total duration:,182292000,ns,
+Computation duration:,36332100,ns,
+Total duration:,190535000,ns,
+Computation duration:,36295700,ns,
+Total duration:,213571000,ns,
+Computation duration:,34742000,ns,
+Total duration:,203721000,ns,
+Computation duration:,34462300,ns,
+Total duration:,195930000,ns,
+Computation duration:,36216800,ns,
+Total duration:,206221000,ns,
+Computation duration:,35500900,ns,
+Total duration:,205566000,ns,
+Computation duration:,36006000,ns,
+Total duration:,215440000,ns,
+N,200,nodes,4
+Computation duration:,44127400,ns,
+Total duration:,767249000,ns,
+Computation duration:,131049000,ns,
+Total duration:,1011840000,ns,
+Computation duration:,71583800,ns,
+Total duration:,1095900000,ns,
+Computation duration:,43408900,ns,
+Total duration:,699592000,ns,
+Computation duration:,45697100,ns,
+Total duration:,906379000,ns,
+Computation duration:,50239800,ns,
+Total duration:,838954000,ns,
+Computation duration:,148212000,ns,
+Total duration:,1240410000,ns,
+Computation duration:,56611200,ns,
+Total duration:,800594000,ns,
+Computation duration:,29591500,ns,
+Total duration:,801501000,ns,
+Computation duration:,56286600,ns,
+Total duration:,561159000,ns,
+N,200,nodes,16
+Computation duration:,1104670000,ns,
+Total duration:,3317850000,ns,
+Computation duration:,1124710000,ns,
+Total duration:,2932880000,ns,
+Computation duration:,1177650000,ns,
+Total duration:,2777120000,ns,
+Computation duration:,1157470000,ns,
+Total duration:,2395810000,ns,
+Computation duration:,1122740000,ns,
+Total duration:,2909570000,ns,
+Computation duration:,1207840000,ns,
+Total duration:,2747830000,ns,
+Computation duration:,1035790000,ns,
+Total duration:,2554590000,ns,
+Computation duration:,1097800000,ns,
+Total duration:,2412060000,ns,
+Computation duration:,1231800000,ns,
+Total duration:,3143570000,ns,
+Computation duration:,1151300000,ns,
+Total duration:,2851100000,ns,
+N,500,nodes,1
+Computation duration:,535783000,ns,
+Total duration:,1961250000,ns,
+Computation duration:,544215000,ns,
+Total duration:,1968940000,ns,
+Computation duration:,537620000,ns,
+Total duration:,1972590000,ns,
+Computation duration:,536601000,ns,
+Total duration:,1966080000,ns,
+Computation duration:,543725000,ns,
+Total duration:,1949430000,ns,
+Computation duration:,539784000,ns,
+Total duration:,2033970000,ns,
+Computation duration:,536117000,ns,
+Total duration:,2008390000,ns,
+Computation duration:,537828000,ns,
+Total duration:,1943940000,ns,
+Computation duration:,538447000,ns,
+Total duration:,1920210000,ns,
+Computation duration:,541449000,ns,
+Total duration:,2001070000,ns,
+N,500,nodes,4
+Computation duration:,292719000,ns,
+Total duration:,2905000000,ns,
+Computation duration:,365155000,ns,
+Total duration:,3432640000,ns,
+Computation duration:,301475000,ns,
+Total duration:,3561800000,ns,
+Computation duration:,322623000,ns,
+Total duration:,5294930000,ns,
+Computation duration:,308193000,ns,
+Total duration:,4164950000,ns,
+Computation duration:,344761000,ns,
+Total duration:,3101570000,ns,
+Computation duration:,302764000,ns,
+Total duration:,4136550000,ns,
+Computation duration:,319713000,ns,
+Total duration:,3728360000,ns,
+Computation duration:,306993000,ns,
+Total duration:,4587030000,ns,
+Computation duration:,306159000,ns,
+Total duration:,4017070000,ns,
+Computation duration:,355147000,ns,
+Total duration:,4732000000,ns,
+N,500,nodes,16
+Computation duration:,4863510000,ns,
+Total duration:,11949200000,ns,
+Computation duration:,5319000000,ns,
+Total duration:,11939700000,ns,
+Computation duration:,4752420000,ns,
+Total duration:,16818900000,ns,
+Computation duration:,5601740000,ns,
+Total duration:,13788500000,ns,
+Computation duration:,5901780000,ns,
+Total duration:,11646800000,ns,
+Computation duration:,5408500000,ns,
+Total duration:,13132400000,ns,
+Computation duration:,5904910000,ns,
+Total duration:,16510500000,ns,
+Computation duration:,4875590000,ns,
+Total duration:,17042300000,ns,
+N,1000,nodes,1
+Computation duration:,6067180000,ns,
+Total duration:,15874900000,ns,
+Computation duration:,7032610000,ns,
+Total duration:,16852500000,ns,
+Computation duration:,6185130000,ns,
+Total duration:,16000100000,ns,
+Computation duration:,6045750000,ns,
+Total duration:,15856500000,ns,
+Computation duration:,6186890000,ns,
+Total duration:,16067300000,ns,
+Computation duration:,6236550000,ns,
+Total duration:,16051900000,ns,
+Computation duration:,6092680000,ns,
+Total duration:,16871000000,ns,
+Computation duration:,6273540000,ns,
+Total duration:,17126200000,ns,
+Computation duration:,6165540000,ns,
+Total duration:,16046900000,ns,
+Computation duration:,6092560000,ns,
+Total duration:,15879300000,ns,
+N,1000,nodes,4
+Computation duration:,3088500000,ns,
+Total duration:,22289700000,ns,
+Computation duration:,3523010000,ns,
+Total duration:,22759500000,ns,
+Computation duration:,3011090000,ns,
+Total duration:,23634400000,ns,
+Computation duration:,2832960000,ns,
+Total duration:,22928100000,ns,
+Computation duration:,3175970000,ns,
+Total duration:,20291100000,ns,
+Computation duration:,2934130000,ns,
+Total duration:,20923800000,ns,
+Computation duration:,3177660000,ns,
+Total duration:,18112900000,ns,
+Computation duration:,3110610000,ns,
+Total duration:,23188000000,ns,
+Computation duration:,3007630000,ns,
+Total duration:,20909900000,ns,
+Computation duration:,3134410000,ns,
+Total duration:,20561100000,ns,
+N,1000,nodes,16
+Computation duration:,20917700000,ns,
+Total duration:,60051600000,ns,
+Computation duration:,20541700000,ns,
+Total duration:,60177200000,ns,
+Computation duration:,22420400000,ns,
+Total duration:,55631900000,ns,
+Computation duration:,21306700000,ns,
+Total duration:,74697200000,ns,
+Computation duration:,18447000000,ns,
+Total duration:,68103300000,ns,
+Computation duration:,22072500000,ns,
+Total duration:,62796000000,ns,
+Computation duration:,14184800000,ns,
+Total duration:,57052200000,ns,
+Computation duration:,19505800000,ns,
+Total duration:,51425900000,ns,
+Computation duration:,21744500000,ns,
+Total duration:,55629600000,ns,
+Computation duration:,13892200000,ns,
+Total duration:,45158500000,ns,

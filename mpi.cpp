@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#define N 100
+#define N 1000
 
 using namespace std;
 /*  
@@ -21,6 +21,8 @@ int matrix1[N][N];
 int matrix2[N][N];
 chrono::high_resolution_clock::time_point start;
 chrono::high_resolution_clock::time_point finish;
+chrono::high_resolution_clock::time_point beginning;
+chrono::high_resolution_clock::time_point end;
 
 typedef struct 
 {
@@ -48,6 +50,22 @@ long double timeStop()
     chrono::high_resolution_clock::time_point finish = chrono::high_resolution_clock::now();
     chrono::duration<long double, nano> diff = finish - start;
     return diff.count();
+}
+
+void totalElapsedStart()
+{
+    beginning = chrono::high_resolution_clock::now();
+}
+
+void totalElapsedCount()
+{
+    chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+    chrono::duration<long double, nano> diff2 = end - beginning;
+    long double totalElapsed = diff2.count();
+    cout << "\nTotal duration: " << totalElapsed << " ns" << endl;
+    ofstream out3("times.csv", fstream::app);
+    out3 << "Total duration:\t" << totalElapsed << "\tns\n";
+    out3.close();
 }
 
 int checkProcesses(int processes)
@@ -178,7 +196,7 @@ void bufferPrint(int *matrix, int size)
 void matrixInit() 
 {
     ifstream in;
-    in.open("matrix1_100.csv");
+    in.open("matrix1_1000.csv");
     for (int i = 0; i < N; i++)
     {
         string line;
@@ -195,7 +213,7 @@ void matrixInit()
     in.close();
 
     ifstream in2;
-    in2.open("matrix1_100.csv");
+    in2.open("matrix2_1000.csv");
     for (int i = 0; i < N; i++)
     {
         string line2;
@@ -313,9 +331,8 @@ int** testStuff()
 
 void measureStuff(mpiGrid *grid)
 {
-    int checkboardPiece;
     int **matrixA, **matrixB, **matrixC;
-    checkboardPiece = N / grid->dim;
+    int checkboardPiece = N / grid->dim;
     int checkboardRow = grid->row * checkboardPiece;
     int checkboardColumn = grid->column * checkboardPiece;
 
@@ -342,6 +359,7 @@ void measureStuff(mpiGrid *grid)
 
     if (grid->rank == 0)
     {
+        totalElapsedStart();
         cout << "\nMatrix 1:" << endl;
         bufferPrint(*matrix1, N);
         cout << "\nMatrix 2:" << endl;
@@ -358,9 +376,9 @@ void measureStuff(mpiGrid *grid)
     if (grid->rank == 0)
     {
         long double duration = timeStop();
-        cout << "\nDuration: " << duration << " ns" << endl;
+        cout << "\nComputation duration: " << duration << " ns" << endl;
         ofstream out("times.csv", fstream::app);
-        out << "Duration:\t" << duration << "\tns\n";
+        out << "Computation duration:\t" << duration << "\tns\n";
         out.close();
     }
 
@@ -411,11 +429,13 @@ void measureStuff(mpiGrid *grid)
             out << '\n';
         }
         out.close();
+        totalElapsedCount();
     }
 }
 
 int main(int argc, char *argv[]) 
 {
+    
     //srand(time(NULL));
 
     // Initialize the MPI environment
@@ -434,5 +454,6 @@ int main(int argc, char *argv[])
 
     // Finalize the MPI environment
     MPI_Finalize();
+    
     exit(0);
 }       
