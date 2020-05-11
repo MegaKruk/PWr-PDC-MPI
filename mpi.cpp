@@ -7,9 +7,13 @@
 #include <math.h>
 #include <chrono>
 
-#define N 4
+#define N 1000
 
 using namespace std;
+/*  
+Allowed number of processes for mpirun "p" is such that sqrt(p) must be an integer  
+Matrix size N must be dividable by sqrt(p)  
+*/
 
 int matrix1[N][N];
 int matrix2[N][N];
@@ -171,6 +175,7 @@ void bufferPrint(int *matrix, int size)
 
 void matrixInit() 
 {
+    // later load from file
     for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++) 
@@ -179,6 +184,26 @@ void matrixInit()
             matrix2[i][j] = rand() % 10;
         }
     }
+
+    //hack fix to generate matrices easily
+    /*
+    ofstream out("matrix1.csv");
+    for(int i = 0; i < N; i++) 
+    {
+        for (int j = 0; j < N; j++)
+            out << matrix1[i][j] <<',';
+        out << '\n';
+    }
+    out.close();
+    ofstream out2("matrix2.csv");
+    for(int i = 0; i < N; i++) 
+    {
+        for (int j = 0; j < N; j++)
+            out2 << matrix2[i][j] <<',';
+        out2 << '\n';
+    }
+    out2.close();
+    */
 }
 
 void foxAlgorithm(int n, mpiGrid *grid, int **a, int **b, int **c) 
