@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#define N 1000
+#define N 4
 
 using namespace std;
 /*  
